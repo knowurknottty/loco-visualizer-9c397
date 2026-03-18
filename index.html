@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOCO Visualizer — Choose Your Path</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(100, 200, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Main container */
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf, #ff006e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+            margin-bottom: 0.5rem;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5)); }
+            to { filter: drop-shadow(0 0 40px rgba(123, 44, 191, 0.8)); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #8892b0;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .description {
+            max-width: 600px;
+            margin: 2rem auto;
+            color: #ccd6f6;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        /* Choice cards container */
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        /* Individual choice card */
+        .choice-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .choice-card:hover::before {
+            opacity: 1;
+        }
+
+        .choice-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Card variants */
+        .choice-card.infinite-forge:hover {
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .choice-card.nexus-claw:hover {
+            box-shadow: 0 20px 60px rgba(255, 0, 110, 0.3);
+            border-color: rgba(255, 0, 110, 0.5);
+        }
+
+        /* Card icon */
+        .card-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .infinite-forge .card-icon {
+            filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+        }
+
+        .nexus-claw .card-icon {
+            filter: drop-shadow(0 0 20px rgba(255, 0, 110, 0.5));
+        }
+
+        /* Card title */
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .infinite-forge .card-title {
+            color: #00d4ff;
+        }
+
+        .nexus-claw .card-title {
+            color: #ff006e;
+        }
+
+        /* Card subtitle */
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Feature list */
+        .features {
+            list-style: none;
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .features li {
+            padding: 0.5rem 0;
+            color: #ccd6f6;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .features li::before {
+            content: '→';
+            color: #64ffda;
+            font-weight: bold;
+        }
+
+        .infinite-forge .features li::before {
+            color: #00d4ff;
+        }
+
+        .nexus-claw .features li::before {
+            color: #ff006e;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            border: 2px solid transparent;
+        }
+
+        .btn-forge {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #000;
+        }
+
+        .btn-forge:hover {
+            background: transparent;
+            border-color: #00d4ff;
+            color: #00d4ff;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-nexus {
+            background: linear-gradient(135deg, #ff006e, #ff4d9e);
+            color: #fff;
+        }
+
+        .btn-nexus:hover {
+            background: transparent;
+            border-color: #ff006e;
+            color: #ff006e;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+        }
+
+        /* Stats comparison */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+            font-size: 0.85rem;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem;
+            border-radius: 10px;
+        }
+
+        .stat-label {
+            color: #8892b0;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 4rem;
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: #64ffda;
+            text-decoration: none;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .choices {
+                grid-template-columns: 1fr;
+            }
+            
+            .choice-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(100, 255, 218, 0.1);
+            border-top-color: #64ffda;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading screen -->
+    <div class="loading" id="loading">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Background particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">LOCO</h1>
+            <p class="subtitle">Multi-Agent Swarm Intelligence Visualizer</p>
+            <p class="description">
+                Observe the OUROBOROS in action. Watch as 16 integrated modules process input, 
+                form beliefs, and generate output in real-time. Choose your viewing experience:
+            </p>
+        </header>
+
+        <!-- Choice cards -->
+        <div class="choices">
+            <!-- Infinite Forge -->
+            <div class="choice-card infinite-forge" onclick="selectPath('infinite-forge')">
+                <span class="card-icon">🔷</span>
+                <h2 class="card-title">Infinite Forge</h2>
+                <p class="card-subtitle">The Architect's Path</p>
+                
+                <ul class="features">
+                    <li>React 18 + Zustand state</li>
+                    <li>D3.js visualizations</li>
+                    <li>Dark space aesthetic</li>
+                    <li>Professional, clean design</li>
+                    <li>Smooth 60fps animations</li>
+                </ul>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">Init Load</div>
+                        <div class="stat-value">&lt;100ms</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Framework</div>
+                        <div class="stat-value">React</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Theme</div>
+                        <div class="stat-value">Dark Space</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Deploy</div>
+                        <div class="stat-value">Docker</div>
+                    </div>
+                </div>
+
+                <a href="/infinite-forge/" class="btn btn-forge">Enter the Forge</a>
+            </div>
+
+            <!-- Nexus Claw -->
+            <div class="choice-card nexus-claw" onclick="selectPath('nexus-claw')">
+                <span class="card-icon">⚡</span>
+                <h2 class="card-title">Nexus Claw</h2>
+                <p class="card-subtitle">The Cyberpunk Path</p>
+                
+                <ul class="features">
+                    <li>Vue 3 + Pinia state</li>
+                    <li>ECharts visualizations</li>
+                    <li>Cyberpunk neon aesthetic</li>
+                    <li>Glitch effects & wow factor</li>
+                    <li>Kubernetes deployment</li>
+                </ul>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">Init Load</div>
+                        <div class="stat-value">&lt;50ms</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Framework</div>
+                        <div class="stat-value">Vue 3</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Theme</div>
+                        <div class="stat-value">Cyberpunk</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Deploy</div>
+                        <div class="stat-value">Kubernetes</div>
+                    </div>
+                </div>
+
+                <a href="/nexus-claw/" class="btn btn-nexus">Enter the Nexus</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built with the LOCO Framework • 16 Integrated Bio-Inspired Modules</p>
+            <p>View source on <a href="https://github.com/knowurknottty/nexus-claw">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Generate background particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Hide loading screen
+        window.addEventListener('load', () => {
+            createParticles();
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 500);
+        });
+
+        // Handle card selection
+        function selectPath(path) {
+            // Add selection animation
+            const card = document.querySelector(`.${path}`);
+            card.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                card.style.transform = '';
+                // Navigate to selected path
+                window.location.href = path === 'infinite-forge' ? '/infinite-forge/' : '/nexus-claw/';
+            }, 200);
+        }
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') selectPath('infinite-forge');
+            if (e.key === '2') selectPath('nexus-claw');
+        });
+
+        // Console easter egg
+        console.log('%c🐍 LOCO Visualizer', 'font-size: 24px; font-weight: bold; color: #00d4ff;');
+        console.log('%cThe snake eats its own tail...', 'font-size: 14px; color: #8892b0;');
+        console.log('%cPress 1 for Infinite Forge, 2 for Nexus Claw', 'font-size: 12px; color: #64ffda;');
+    </script>
+</body>
+</html>
